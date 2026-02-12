@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOE CyberOps - Operações de Guerra Cibernética</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-military-green: #4B5320;
+            --color-dark-green: #2E3414;
+            --color-alert-red: #D32F2F;
+            --color-dark-red: #9A0007;
+            --color-tactical-gray: #121212;
+            --color-medium-gray: #1E1E1E;
+            --color-light-gray: #2D2D2D;
+            --color-text-primary: #E0E0E0;
+            --color-text-secondary: #9E9E9E;
+            --color-accent-blue: #1565C0;
+            --color-accent-yellow: #FFC107;
+            --color-night-vision: #00FF00;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--color-tactical-gray);
+            color: var(--color-text-primary);
+            line-height: 1.5;
+            max-width: 100%;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Modo Visão Noturna */
+        body.night-vision {
+            background-color: #000000 !important;
+            color: var(--color-night-vision) !important;
+            filter: sepia(1) hue-rotate(-70deg) saturate(5);
+        }
+
+        body.night-vision .app-container {
+            background-color: #000000 !important;
+        }
+
+        body.night-vision .header,
+        body.night-vision .card,
+        body.night-vision .bottom-nav {
+            background-color: #0A0A0A !important;
+            border-color: #003300 !important;
+        }
+
+        body.night-vision .status-critical {
+            background-color: #550000 !important;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            max-width: 414px;
+            margin: 0 auto;
+            background-color: var(--color-tactical-gray);
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+        }
+
+        /* Barra de Status Tático */
+        .tactical-status-bar {
+            height: 4px;
+            background: linear-gradient(90deg, 
+                #4CAF50 0%, 
+                #4CAF50 70%, 
+                #FF9800 70%, 
+                #FF9800 90%, 
+                var(--color-alert-red) 90%, 
+                var(--color-alert-red) 100%);
+            position: relative;
+        }
+
+        .tactical-status-indicator {
+            position: absolute;
+            width: 20%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.3);
+            left: 60%;
+            transition: left 0.5s ease;
+        }
+
+        .header {
+            background-color: var(--color-dark-green);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--color-military-green);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(75, 83, 32, 0.2), transparent 70%);
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 5px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 10px;
+            color: var(--color-text-secondary);
+        }
+
+        .signal-strength {
+            width: 40px;
+            height: 10px;
+            background-color: var(--color-light-gray);
+            border-radius: 2px;
+            margin-right: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .signal-strength::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 75%;
+            background-color: #4CAF50;
+        }
+
+        .app-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--color-text-primary);
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+        }
+
+        .app-subtitle {
+            font-size: 10px;
+            color: var(--color-text-secondary);
+            letter-spacing: 0.5px;
+        }
+
+        .operator-status {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .operator-id {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        .operator-rank {
+            font-size: 14px;
+            color: var(--color-accent-yellow);
+            font-weight: bold;
+        }
+
+        .privacy-shield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.7) 70%);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+        }
+
+        .privacy-shield.active {
+            display: block;
+        }
+
+        .remote-monitor-alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1001;
+            display: none;
+        }
+
+        .main-content {
+            height: calc(100vh - 144px);
+            overflow-y: auto;
+            padding-bottom: 10px;
+        }
+
+        .main-content::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: var(--color-dark-green);
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: var(--color-military-green);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--color-military-green);
+            display: flex;
+            align-items: center;
+            color: var(--color-text-primary);
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            color: var(--color-military-green);
+        }
+
+        body.night-vision .section-title {
+            color: var(--color-night-vision) !important;
+            border-bottom-color: #003300 !important;
+        }
+
+        .card {
+            background-color: var(--color-medium-gray);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--color-military-green);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .sunlight-readable {
+            -webkit-text-stroke: 0.5px black;
+            text-shadow: 0 0 3px rgba(0,0,0,0.8);
+        }
+
+        .card-alert {
+            border-left-color: var(--color-alert-red);
+        }
+
+        .card-title {
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title .status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background-color: var(--color-light-gray);
+        }
+
+        .status-critical {
+            background-color: var(--color-dark-red) !important;
+            color: white;
+        }
+
+        .status-warning {
+            background-color: #FF9800 !important;
+            color: black;
+        }
+
+        .status-safe {
+            background-color: var(--color-military-green) !important;
+            color: white;
+        }
+
+        /* Monitoramento de Espectro */
+        .spectrum-chart {
+            height: 150px;
+            background-color: var(--color-tactical-gray);
+            border-radius: 3px;
+            margin: 10px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .chart-grid-line {
+            width: 1px;
+            background-color: rgba(75, 83, 32, 0.3);
+        }
+
+        .chart-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(to top, rgba(75, 83, 32, 0.8), transparent);
+            transition: clip-path 0.5s ease;
+        }
+
+        .spectrum-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .filter-btn {
+            flex: 1;
+            padding: 8px;
+            background-color: var(--color-dark-green);
+            border: 1px solid var(--color-military-green);
+            border-radius: 3px;
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .filter-btn.active {
+            background-color: var(--color-military-green);
+            color: white;
+        }
+
+        .spectrum-history {
+            height: 80px;
+            background-color: var(--color-tactical-gray);
+            border-radius: 3px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .device-list {
+            list-style-type: none;
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(75, 83, 32, 0.2);
+        }
+
+        .glove-friendly {
+            min-height: 48px;
+            min-width: 48px;
+        }
+
+        .device-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .device-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--color-dark-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            color: var(--color-text-secondary);
+        }
+
+        .device-name {
+            font-size: 13px;
+        }
+
+        .device-mac {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+        }
+
+        .device-signal {
+            font-size: 12px;
+            color: var(--color-accent-yellow);
+        }
+
+        /* Sistema de Defesa Ativa */
+        .defense-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .defense-button {
+            background-color: var(--color-dark-green);
+            border: 1px solid var(--color-military-green);
+            border-radius: 5px;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .defense-button:hover {
+            background-color: rgba(75, 83, 32, 0.3);
+        }
+
+        .defense-button.active {
+            background-color: var(--color-dark-red);
+            border-color: var(--color-alert-red);
+        }
+
+        .defense-button i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--color-military-green);
+        }
+
+        .defense-button.active i {
+            color: var(--color-alert-red);
+        }
+
+        .defense-button-text {
+            font-size: 14px;
+        }
+
+        .automated-defense {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--color-light-gray);
+            border-radius: 5px;
+        }
+
+        .defense-schedule {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .firewall-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--color-alert-red);
+            margin-right: 10px;
+        }
+
+        .status-indicator.active {
+            background-color: #4CAF50;
+            box-shadow: 0 0 8px #4CAF50;
+        }
+
+        /* Módulo de Exfiltração */
+        .payload-list {
+            list-style-type: none;
+        }
+
+        .payload-item {
+            background-color: var(--color-light-gray);
+            border-radius: 3px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--color-accent-blue);
+        }
+
+        .payload-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .payload-name {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .payload-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background-color: var(--color-military-green);
+        }
+
+        .payload-status.running {
+            background-color: var(--color-alert-red);
+        }
+
+        .payload-details {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .payload-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .payload-button {
+            background-color: var(--color-dark-green);
+            border: 1px solid var(--color-military-green);
+            border-radius: 3px;
+            padding: 8px 5px;
+            font-size: 12px;
+            cursor: pointer;
+            flex: 1;
+            margin: 0 3px;
+            text-align: center;
+        }
+
+        .payload-button:hover {
+            background-color: rgba(75, 83, 32, 0.3);
+        }
+
+        .capture-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background-color: var(--color-light-gray);
+            border-radius: 3px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--color-accent-yellow);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+            margin-top: 5px;
+        }
+
+        .transfer-progress {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--color-light-gray);
+            border-radius: 5px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: var(--color-dark-green);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--color-accent-blue);
+            width: 65%;
+            transition: width 0.5s ease;
+        }
+
+        .transfer-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        .data-priority {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--color-light-gray);
+            border-radius: 5px;
+        }
+
+        .priority-slider {
+            margin-top: 10px;
+        }
+
+        .priority-slider input {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .priority-label {
+            display: block;
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-accent-yellow);
+        }
+
+        /* Mapa de Operações */
+        .map-container {
+            height: 200px;
+            background-color: var(--color-dark-green);
+            border-radius: 3px;
+            margin: 10px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(75, 83, 32, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(75, 83, 32, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .map-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .map-point.critical {
+            background-color: var(--color-alert-red);
+            box-shadow: 0 0 10px var(--color-alert-red);
+        }
+
+        .map-point.vulnerable {
+            background-color: #FF9800;
+            box-shadow: 0 0 8px #FF9800;
+        }
+
+        .map-point.infrastructure {
+            background-color: var(--color-accent-blue);
+            box-shadow: 0 0 8px var(--color-accent-blue);
+        }
+
+        .map-layers {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .layer-btn {
+            flex: 1;
+            padding: 10px 5px;
+            background-color: var(--color-dark-green);
+            border: 1px solid var(--color-military-green);
+            border-radius: 3px;
+            color: var(--color-text-secondary);
+            font-size: 11px;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .layer-btn.active {
+            background-color: var(--color-military-green);
+            color: white;
+        }
+
+        .layer-btn i {
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .extraction-route {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: var(--color-light-gray);
+            border-radius: 5px;
+            border-left: 3px solid #4CAF50;
+            font-size: 13px;
+        }
+
+        .map-legend {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        /* Perfil do Operador */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            background-color: var(--color-dark-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            border: 2px solid var(--color-military-green);
+            font-size: 28px;
+            color: var(--color-text-secondary);
+        }
+
+        .profile-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: var(--color-accent-yellow);
+        }
+
+        .profile-info p {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            margin-bottom: 3px;
+        }
+
+        .mission-timer {
+            background-color: var(--color-light-gray);
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .mission-timer span {
+            display: block;
+            font-size: 24px;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--color-accent-yellow);
+            margin: 5px 0;
+        }
+
+        .timer-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        .checkin-status {
+            background-color: var(--color-light-gray);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .checkin-timer {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkin-timer i {
+            margin-right: 10px;
+            color: var(--color-military-green);
+        }
+
+        .checkin-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--color-dark-green);
+            border: 1px solid var(--color-military-green);
+            border-radius: 3px;
+            color: var(--color-text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .checkin-btn:hover {
+            background-color: rgba(75, 83, 32, 0.3);
+        }
+
+        .encryption-status {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .encryption-key {
+            font-family: monospace;
+            background-color: var(--color-dark-green);
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-left: 10px;
+            border: 1px solid var(--color-military-green);
+        }
+
+        .mission-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .mission-stat {
+            background-color: var(--color-light-gray);
+            border-radius: 3px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .mission-stat-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--color-text-primary);
+        }
+
+        .mission-stat-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: 5px;
+        }
+
+        /* TSD - Quadro de Situação Tática */
+        .tactical-situation-display {
+            background-color: var(--color-light-gray);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--color-military-green);
+        }
+
+        .tsd-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(75, 83, 32, 0.3);
+        }
+
+        .tsd-header h3 {
+            font-size: 14px;
+            color: var(--color-text-primary);
+        }
+
+        .tsd-timestamp {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+        }
+
+        .tsd-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .tsd-item {
+            background-color: var(--color-dark-green);
+            border-radius: 3px;
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tsd-item.friend {
+            border-top: 3px solid #4CAF50;
+        }
+
+        .tsd-item.neutral {
+            border-top: 3px solid #FF9800;
+        }
+
+        .tsd-item.hostile {
+            border-top: 3px solid var(--color-alert-red);
+        }
+
+        .tsd-item i {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .tsd-item span {
+            font-size: 12px;
+        }
+
+        /* Sistema de Dead Man's Switch */
+        .deadmans-switch {
+            background-color: var(--color-light-gray);
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid var(--color-alert-red);
+        }
+
+        .deadmans-switch h4 {
+            color: var(--color-alert-red);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .deadmans-switch h4 i {
+            margin-right: 10px;
+        }
+
+        .deadmans-switch p {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .countdown-timer {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            color: var(--color-alert-red);
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(211, 47, 47, 0.1);
+            border-radius: 3px;
+        }
+
+        .confirmation-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--color-dark-red);
+            border: 1px solid var(--color-alert-red);
+            border-radius: 3px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        /* Análise de Padrões de Ameaça */
+        .threat-pattern-analysis {
+            background-color: var(--color-light-gray);
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .threat-pattern-analysis h4 {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .threat-pattern-analysis h4 i {
+            margin-right: 10px;
+            color: var(--color-military-green);
+        }
+
+        .pattern-indicators {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pattern {
+            padding: 10px;
+            background-color: var(--color-dark-green);
+            border-radius: 3px;
+            font-size: 12px;
+            border-left: 3px solid;
+        }
+
+        .pattern[data-type="ddos"] {
+            border-left-color: var(--color-alert-red);
+        }
+
+        .pattern[data-type="recon"] {
+            border-left-color: #FF9800;
+        }
+
+        .pattern[data-type="exfiltration"] {
+            border-left-color: var(--color-accent-blue);
+        }
+
+        /* Barra de Navegação Inferior */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--color-dark-green);
+            border-top: 2px solid var(--color-military-green);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            height: 70px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(75, 83, 32, 0.2);
+        }
+
+        .nav-item.active {
+            background-color: rgba(75, 83, 32, 0.3);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: var(--color-text-secondary);
+        }
+
+        .nav-item.active .nav-icon {
+            color: var(--color-text-primary);
+        }
+
+        .nav-label {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+        }
+
+        .nav-item.active .nav-label {
+            color: var(--color-text-primary);
+        }
+
+        /* Alertas */
+        .alert-container {
+            position: absolute;
+            top: 74px;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 15px;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .alert {
+            background-color: var(--color-dark-red);
+            border-left: 4px solid var(--color-alert-red);
+            padding: 12px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .alert-icon {
+            font-size: 20px;
+            margin-right: 10px;
+            color: var(--color-alert-red);
+        }
+
+        .alert-content h4 {
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .alert-content p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Botões de Acesso Rápido */
+        .quick-access {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .quick-access-btn {
+            width: 50px;
+            height: 50px;
+            background-color: var(--color-dark-green);
+            border: 2px solid var(--color-military-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .quick-access-btn i {
+            font-size: 20px;
+            color: var(--color-text-primary);
+        }
+
+        .quick-access-btn:hover {
+            background-color: var(--color-military-green);
+        }
+
+        /* Modo Baixa Visibilidade */
+        .low-visibility-mode .non-essential {
+            display: none !important;
+        }
+
+        .low-visibility-mode .critical-info {
+            font-size: 16px !important;
+            text-shadow: 0 0 5px #00FF00 !important;
+        }
+
+        /* Responsividade */
+        @media (max-width: 414px) {
+            .app-container {
+                max-width: 100%;
+            }
+            
+            .defense-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .capture-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .mission-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .tsd-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animações de Dados em Tempo Real */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Barra de Status Tático -->
+        <div class="tactical-status-bar">
+            <div class="tactical-status-indicator"></div>
+        </div>
+
+        <!-- Cabeçalho -->
+        <div class="header">
+            <div>
+                <div class="app-title">MOE CyberOps</div>
+                <div class="app-subtitle">OPERACIONES DE GUERRA CIBERNÉTICA</div>
+            </div>
+            <div class="operator-status">
+                <div class="operator-id">ID: OP-7892-MOE</div>
+                <div class="operator-rank">CAPITÁN</div>
+            </div>
+            <div class="connection-status">
+                <div class="signal-strength"></div>
+                <span>SATCOM | 142ms</span>
+            </div>
+        </div>
+
+        <!-- Proteção de Privacidade -->
+        <div class="privacy-shield" id="privacyShield"></div>
+        <div class="remote-monitor-alert" id="remoteMonitorAlert">
+            <i class="fas fa-eye"></i> COMANDO CENTRAL OBSERVANDO
+        </div>
+
+        <!-- Alertas -->
+        <div class="alert-container" id="alertContainer">
+            <!-- Alertas serão injetados via JavaScript -->
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="main-content" id="mainContent">
+            <!-- Tela de Monitoramento -->
+            <div id="monitorTab" class="tab-content active">
+                <div class="section-title">
+                    <i class="fas fa-satellite-dish"></i>
+                    MONITORAMENTO DE ESPECTRO
+                </div>
+                
+                <!-- Quadro de Situação Tática -->
+                <div class="tactical-situation-display">
+                    <div class="tsd-header">
+                        <h3><i class="fas fa-chess-board"></i> QUADRO DE SITUAÇÃO TÁTICA</h3>
+                        <span class="tsd-timestamp" id="tsdTimestamp">ATUALIZADO: 15:42:03</span>
+                    </div>
+                    
+                    <div class="tsd-grid">
+                        <div class="tsd-item friend">
+                            <i class="fas fa-user-friends"></i>
+                            <span>FORÇAS AMIGAS: 12</span>
+                        </div>
+                        <div class="tsd-item neutral">
+                            <i class="fas fa-eye"></i>
+                            <span>ALVOS MONITORADOS: 8</span>
+                        </div>
+                        <div class="tsd-item hostile">
+                            <i class="fas fa-skull"></i>
+                            <span>AMEAÇAS ATIVAS: 3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span>TRÁFEGO DE REDE LOCAL</span>
+                        <span class="status status-warning" id="trafficStatus">ALTA ATIVIDADE</span>
+                    </div>
+                    <div class="spectrum-chart">
+                        <div class="chart-grid">
+                            <div class="chart-grid-line"></div>
+                            <div class="chart-grid-line"></div>
+                            <div class="chart-grid-line"></div>
+                            <div class="chart-grid-line"></div>
+                            <div class="chart-grid-line"></div>
+                        </div>
+                        <div class="chart-wave" id="spectrumWave"></div>
+                    </div>
+                    
+                    <!-- Histórico de Espectro -->
+                    <div class="spectrum-history" id="spectrumHistory">
+                        <div class="chart-grid">
+                            <div class="chart-grid-line"></div>
+                            <div class="chart-grid-line"></div>
+                            <div class="chart-grid-line"></div>
+                            <div class="chart-grid-line"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filtros Rápidos -->
+                <div class="spectrum-filters">
+                    <button class="filter-btn active" data-filter="all">TODOS</button>
+                    <button class="filter-btn" data-filter="suspicious">SUSPEITOS</button>
+                    <button class="filter-btn" data-filter="known">CONHECIDOS</button>
+                    <button class="filter-btn" data-filter="new">NOVOS</button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span>DISPOSITIVOS DETECTADOS</span>
+                        <span class="status" id="deviceCount">8 ENCONTRADOS</span>
+                    </div>
+                    <ul class="device-list" id="deviceList">
+                        <li class="device-item">
+                            <div class="device-info">
+                                <div class="device-icon">
+                                    <i class="fas fa-wifi"></i>
+                                </div>
+                                <div>
+                                    <div class="device-name">Gateway Principal</div>
+                                    <div class="device-mac">MAC: 00:1A:2B:3C:4D:5E</div>
+                                </div>
+                            </div>
+                            <div class="device-signal">-42 dBm</div>
+                        </li>
+                        <li class="device-item suspicious">
+                            <div class="device-info">
+                                <div class="device-icon" style="background-color: rgba(255, 152, 0, 0.3);">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div>
+                                    <div class="device-name">Dispositivo Suspeito</div>
+                                    <div class="device-mac">MAC: 5C:F8:21:9A:3B:7D</div>
+                                </div>
+                            </div>
+                            <div class="device-signal">-58 dBm</div>
+                        </li>
+                        <li class="device-item known">
+                            <div class="device-info">
+                                <div class="device-icon">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                                <div>
+                                    <div class="device-name">Servidor Interno</div>
+                                    <div class="device-mac">MAC: A4:BB:6D:CC:11:FF</div>
+                                </div>
+                            </div>
+                            <div class="device-signal">-32 dBm</div>
+                        </li>
+                        <li class="device-item new">
+                            <div class="device-info">
+                                <div class="device-icon" style="background-color: var(--color-accent-blue);">
+                                    <i class="fas fa-bluetooth"></i>
+                                </div>
+                                <div>
+                                    <div class="device-name">Novo Dispositivo</div>
+                                    <div class="device-mac">MAC: 11:22:33:44:55:66</div>
+                                </div>
+                            </div>
+                            <div class="device-signal">-72 dBm</div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card card-alert">
+                    <div class="card-title">
+                        <span>ALERTAS DE SEGURANÇA</span>
+                        <span class="status status-critical">CRÍTICO</span>
+                    </div>
+                    <p style="font-size: 13px; margin-bottom: 10px;">Tentativa de intrusão detectada no setor 4.</p>
+                    <p style="font-size: 12px; color: var(--color-text-secondary);">IP de origem: 192.168.45.23 | Tipo: Ataque MITM</p>
+                </div>
+
+                <!-- Análise de Padrões de Ameaça -->
+                <div class="threat-pattern-analysis">
+                    <h4><i class="fas fa-brain"></i> ANÁLISE DE PADRÕES DE AMEAÇA</h4>
+                    <div class="pattern-indicators">
+                        <div class="pattern" data-type="ddos">ATAQUE DDoS DETECTADO - PORTAS 80, 443</div>
+                        <div class="pattern" data-type="recon">RECONHECIMENTO EM ANDAMENTO - SCAN DE PORTAS</div>
+                        <div class="pattern" data-type="exfiltration">TENTATIVA DE EXFILTRAÇÃO - SSH INCOMUM</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela de Defesa -->
+            <div id="defenseTab" class="tab-content">
+                <div class="section-title">
+                    <i class="fas fa-shield-alt"></i>
+                    SISTEMA DE DEFESA ATIVA
+                </div>
+                
+                <div class="defense-actions">
+                    <div class="defense-button glove-friendly" id="hardeningBtn">
+                        <i class="fas fa-lock"></i>
+                        <div class="defense-button-text">HARDENING</div>
+                    </div>
+                    <div class="defense-button active glove-friendly" id="firewallBtn">
+                        <i class="fas fa-fire"></i>
+                        <div class="defense-button-text">FIREWALL</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span>STATUS DO SISTEMA</span>
+                    </div>
+                    <div class="firewall-status">
+                        <div style="display: flex; align-items: center;">
+                            <div class="status-indicator active" id="firewallIndicator"></div>
+                            <span>Firewall Ativo</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--color-text-secondary);">
+                            <span id="blockedConnections">128</span> conexões bloqueadas
+                        </div>
+                    </div>
+                    <div class="firewall-status" style="margin-top: 15px;">
+                        <div style="display: flex; align-items: center;">
+                            <div class="status-indicator" id="hardeningIndicator"></div>
+                            <span>Hardening de Portas</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--color-text-secondary);">
+                            <span id="portStatus">Inativo</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span>MITIGAÇÃO DE ATAQUES</span>
+                        <span class="status status-safe">PROTEGIDO</span>
+                    </div>
+                    <p style="font-size: 13px; margin-bottom: 10px;">Sistema protegido contra ataques Man-in-the-Middle.</p>
+                    <p style="font-size: 12px; color: var(--color-text-secondary);">
+                        Última verificação: <span id="lastCheck">15:42:03</span> | Próxima: 16:12:03
+                    </p>
+                </div>
+
+                <!-- Defesa Automatizada -->
+                <div class="automated-defense">
+                    <h4><i class="fas fa-robot"></i> DEFESA AUTOMATIZADA</h4>
+                    <div class="defense-schedule">
+                        <span>Reconfiguração periódica:</span>
+                        <select id="defenseInterval" class="glove-friendly">
+                            <option value="5">5 min</option>
+                            <option value="15" selected>15 min</option>
+                            <option value="30">30 min</option>
+                            <option value="60">60 min</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Contramedidas Automáticas -->
+                <div class="threat-pattern-analysis">
+                    <h4><i class="fas fa-shield-virus"></i> CONTRAMEDIDAS AUTOMÁTICAS</h4>
+                    <div class="pattern-indicators">
+                        <div class="pattern" data-type="ddos" style="background-color: rgba(0,0,0,0.5);">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Ataque DDoS</span>
+                                <span style="color: #4CAF50;">BLOQUEADO</span>
+                            </div>
+                            <small style="color: var(--color-text-secondary);">IP bloqueado: 192.168.45.23</small>
+                        </div>
+                        <div class="pattern" data-type="recon" style="background-color: rgba(0,0,0,0.5);">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Port Scanning</span>
+                                <span style="color: #FF9800;">HONEYPOT ATIVADO</span>
+                            </div>
+                            <small style="color: var(--color-text-secondary);">Atacante redirecionado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela Ofensiva (Exfiltração) -->
+            <div id="offensiveTab" class="tab-content">
+                <div class="section-title">
+                    <i class="fas fa-crosshairs"></i>
+                    MÓDULO DE EXFILTRAÇÃO
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span>GERENCIAMENTO DE PAYLOADS</span>
+                        <span class="status">3 ATIVOS</span>
+                    </div>
+                    <ul class="payload-list">
+                        <li class="payload-item">
+                            <div class="payload-header">
+                                <div class="payload-name">StealthSniffer v2.1</div>
+                                <div class="payload-status running">EXECUTANDO</div>
+                            </div>
+                            <div class="payload-details">Alvo: 192.168.1.45 | Portas: 22, 80, 443</div>
+                            <div class="payload-actions">
+                                <div class="payload-button glove-friendly">DETALHES</div>
+                                <div class="payload-button glove-friendly">PARAR</div>
+                                <div class="payload-button glove-friendly">EXPORTAR</div>
+                            </div>
+                        </li>
+                        <li class="payload-item">
+                            <div class="payload-header">
+                                <div class="payload-name">DataHarvester</div>
+                                <div class="payload-status">PAUSADO</div>
+                            </div>
+                            <div class="payload-details">Alvo: 10.0.0.12 | Protocolo: SSH</div>
+                            <div class="payload-actions">
+                                <div class="payload-button glove-friendly">DETALHES</div>
+                                <div class="payload-button glove-friendly">INICIAR</div>
+                                <div class="payload-button glove-friendly">EXPORTAR</div>
+                            </div>
+                        </li>
+                        <li class="payload-item">
+                            <div class="payload-header">
+                                <div class="payload-name">PacketSniper</div>
+                                <div class="payload-status running">EXECUTANDO</div>
+                            </div>
+                            <div class="payload-details">Alvo: 192.168.0.0/24 | Modo: Promíscuo</div>
+                            <div class="payload-actions">
+                                <div class="payload-button glove-friendly">DETALHES</div>
+                                <div class="payload-button glove-friendly">PARAR</div>
+                                <div class="payload-button glove-friendly">EXPORTAR</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span>CAPTURA DE PACOTES</span>
+                    </div>
+                    <div class="capture-stats">
+                        <div class="stat-box">
+                            <div class="stat-value" id="packetCount">2.4K</div>
+                            <div class="stat-label">PACOTES/MIN</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="dataCaptured">347 MB</div>
+                            <div class="stat-label">DADOS CAPTURADOS</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Barra de Progresso de Transferência -->
+                    <div class="transfer-progress">
+                        <div class="progress-bar">
+                            <div class="progress" id="transferProgress" style="width: 65%;"></div>
+                        </div>
+                        <div class="transfer-stats">
+                            <span id="transferData">347/520 MB</span>
+                            <span id="transferSpeed">2.4 MB/s</span>
+                            <span id="transferEta">ETA: 1:12</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Priorização de Dados -->
+                    <div class="data-priority">
+                        <h4><i class="fas fa-sort-amount-down"></i> PRIORIDADE DE DADOS</h4>
+                        <div class="priority-slider">
+                            <input type="range" id="prioritySlider" min="1" max="5" value="3" class="glove-friendly">
+                            <span class="priority-label" id="priorityLabel">CRÍTICO</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <div class="payload-button" style="display: block; text-align: center; padding: 12px;" id="transferBtn">
+                            INICIAR TRANSFERÊNCIA PARA C2
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela de Mapa -->
+            <div id="mapTab" class="tab-content">
+                <div class="section-title">
+                    <i class="fas fa-map-marked-alt"></i>
+                    MAPA DE OPERAÇÕES (GIS)
+                </div>
+                
+                <!-- Camadas do Mapa -->
+                <div class="map-layers">
+                    <button class="layer-btn active" data-layer="infrastructure">
+                        <i class="fas fa-server"></i>
+                        <span>INFRAESTRUTURA</span>
+                    </button>
+                    <button class="layer-btn" data-layer="network">
+                        <i class="fas fa-wifi"></i>
+                        <span>REDE</span>
+                    </button>
+                    <button class="layer-btn" data-layer="threats">
+                        <i class="fas fa-skull-crossbones"></i>
+                        <span>AMEAÇAS</span>
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span>INFRAESTRUTURAS CRÍTICAS</span>
+                        <span class="status">12 IDENTIFICADAS</span>
+                    </div>
+                    <div class="map-container">
+                        <div class="map-grid"></div>
+                        <div class="map-point critical" style="top: 30%; left: 20%;"></div>
+                        <div class="map-point vulnerable" style="top: 60%; left: 50%;"></div>
+                        <div class="map-point infrastructure" style="top: 40%; left: 70%;"></div>
+                        <div class="map-point vulnerable" style="top: 75%; left: 30%;"></div>
+                        <div class="map-point critical" style="top: 25%; left: 60%;"></div>
+                        <div class="map-point infrastructure" style="top: 50%; left: 80%;"></div>
+                    </div>
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: var(--color-alert-red);"></div>
+                            <span>Crítico</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #FF9800;"></div>
+                            <span>Vulnerável</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: var(--color-accent-blue);"></div>
+                            <span>Infraestrutura</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rota de Extração -->
+                <div class="extraction-route">
+                    <i class="fas fa-running"></i> ROTA DE EXTRAÇÃO: SETOR 4 → PONTO ALFA
+                    <br>
+                    <small style="color: var(--color-text-secondary);">Distância: 2.3 km | Tempo estimado: 35 min</small>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span>ALVOS PRIORITÁRIOS</span>
+                    </div>
+                    <ul class="device-list">
+                        <li class="device-item">
+                            <div class="device-info">
+                                <div class="device-icon" style="background-color: var(--color-dark-red);">
+                                    <i class="fas fa-bullseye"></i>
+                                </div>
+                                <div>
+                                    <div class="device-name">Torre de Comunicações #4</div>
+                                    <div class="device-mac">Coordenadas: 40.4168° N, 3.7038° W</div>
+                                </div>
+                            </div>
+                            <div class="device-signal" style="color: var(--color-alert-red);">ALTA PRIORIDADE</div>
+                        </li>
+                        <li class="device-item">
+                            <div class="device-info">
+                                <div class="device-icon" style="background-color: #FF9800;">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                                <div>
+                                    <div class="device-name">Data Center Regional</div>
+                                    <div class="device-mac">Coordenadas: 40.4521° N, 3.6886° W</div>
+                                </div>
+                            </div>
+                            <div class="device-signal" style="color: #FF9800;">MÉDIA PRIORIDADE</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tela de Perfil -->
+            <div id="profileTab" class="tab-content">
+                <div class="section-title">
+                    <i class="fas fa-user-secret"></i>
+                    PERFIL DO OPERADOR
+                </div>
+                
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h3>CAPITÁN RODRÍGUEZ</h3>
+                        <p>ID de Operador: OP-7892-MOE</p>
+                        <p>Unidade: Ciberdefensa Tática</p>
+                        <p>Status: <span style="color: #4CAF50;">ATIVO EM MISSÃO</span></p>
+                        <div class="encryption-status">
+                            <span>Chave de Criptografia:</span>
+                            <div class="encryption-key">AES-256-GCM</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Temporizador de Missão -->
+                <div class="mission-timer">
+                    <i class="fas fa-clock"></i>
+                    <span id="missionDuration">12:34:17</span>
+                    <span class="timer-label">TEMPO EM MISSÃO</span>
+                </div>
+                
+                <!-- Check-in Automático -->
+                <div class="checkin-status">
+                    <div class="checkin-timer">
+                        <i class="fas fa-broadcast-tower"></i>
+                        <span>Último check-in: <span id="lastCheckin">3 min atrás</span></span>
+                    </div>
+                    <button class="checkin-btn glove-friendly" id="checkinBtn">CHECK-IN AGORA</button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span>ESTATÍSTICAS DA MISSÃO</span>
+                    </div>
+                    <div class="mission-stats">
+                        <div class="mission-stat">
+                            <div class="mission-stat-value">47</div>
+                            <div class="mission-stat-label">ALVOS IDENTIFICADOS</div>
+                        </div>
+                        <div class="mission-stat">
+                            <div class="mission-stat-value">23</div>
+                            <div class="mission-stat-label">EXFILTRAÇÕES</div>
+                        </div>
+                        <div class="mission-stat">
+                            <div class="mission-stat-value">128</div>
+                            <div class="mission-stat-label">ATAQUES BLOQUEADOS</div>
+                        </div>
+                        <div class="mission-stat">
+                            <div class="mission-stat-value">12</div>
+                            <div class="mission-stat-label">DIAS EM OPERAÇÃO</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span>CONEXÕES ATIVAS</span>
+                        <span class="status">3 CONECTADAS</span>
+                    </div>
+                    <ul class="device-list">
+                        <li class="device-item">
+                            <div class="device-info">
+                                <div class="device-icon" style="background-color: var(--color-military-green);">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                                <div>
+                                    <div class="device-name">Servidor C2 Central</div>
+                                    <div class="device-mac">Status: Conectado | Latência: 42ms</div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="device-item">
+                            <div class="device-info">
+                                <div class="device-icon" style="background-color: var(--color-accent-blue);">
+                                    <i class="fas fa-satellite"></i>
+                                </div>
+                                <div>
+                                    <div class="device-name">Rede Tática SATCOM</div>
+                                    <div class="device-mac">Status: Estável | Sinal: 92%</div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Sistema de Dead Man's Switch -->
+                <div class="deadmans-switch">
+                    <h4><i class="fas fa-hourglass-half"></i> INTERRUPTOR DE FALHA</h4>
+                    <p>Confirme a cada 15 minutos para evitar auto-destruição de dados</p>
+                    <div class="countdown-timer" id="deadmanTimer">15:00</div>
+                    <button class="confirmation-btn glove-friendly" id="confirmActivity">CONFIRMAR ATIVIDADE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Acesso Rápido -->
+        <div class="quick-access">
+            <div class="quick-access-btn glove-friendly" id="nightVisionBtn">
+                <i class="fas fa-moon"></i>
+            </div>
+            <div class="quick-access-btn glove-friendly" id="privacyBtn">
+                <i class="fas fa-eye-slash"></i>
+            </div>
+            <div class="quick-access-btn glove-friendly" id="emergencyBtn">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+        </div>
+
+        <!-- Barra de Navegação Inferior -->
+        <div class="bottom-nav">
+            <div class="nav-item active" data-tab="monitorTab">
+                <i class="fas fa-satellite-dish nav-icon"></i>
+                <span class="nav-label">MONITOR</span>
+            </div>
+            <div class="nav-item" data-tab="defenseTab">
+                <i class="fas fa-shield-alt nav-icon"></i>
+                <span class="nav-label">DEFESA</span>
+            </div>
+            <div class="nav-item" data-tab="offensiveTab">
+                <i class="fas fa-crosshairs nav-icon"></i>
+                <span class="nav-label">OFENSIVA</span>
+            </div>
+            <div class="nav-item" data-tab="mapTab">
+                <i class="fas fa-map-marked-alt nav-icon"></i>
+                <span class="nav-label">MAPA</span>
+            </div>
+            <div class="nav-item" data-tab="profileTab">
+                <i class="fas fa-user-secret nav-icon"></i>
+                <span class="nav-label">PERFIL</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // SISTEMA DE NAVEGAÇÃO
+        // ============================================
+        const navItems = document.querySelectorAll('.nav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                
+                item.classList.add('active');
+                
+                tabContents.forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                const tabId = item.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+                
+                // Feedback tátil (vibração)
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(50);
+                }
+            });
+        });
+
+        // ============================================
+        // SISTEMA DE DEFESA ATIVA
+        // ============================================
+        const hardeningBtn = document.getElementById('hardeningBtn');
+        const firewallBtn = document.getElementById('firewallBtn');
+        const hardeningIndicator = document.getElementById('hardeningIndicator');
+        const firewallIndicator = document.getElementById('firewallIndicator');
+        const blockedConnections = document.getElementById('blockedConnections');
+        const portStatus = document.getElementById('portStatus');
+        
+        hardeningBtn.addEventListener('click', () => {
+            hardeningBtn.classList.toggle('active');
+            const isActive = hardeningBtn.classList.contains('active');
+            
+            if (isActive) {
+                hardeningIndicator.classList.add('active');
+                portStatus.textContent = 'Ativo';
+                showAlert("Hardening de portas ativado - Portas fechadas: 22, 80, 443, 3389", "warning");
+                playAlertSound('warning');
+                updateTacticalStatus(0.3); // 30% threat
+            } else {
+                hardeningIndicator.classList.remove('active');
+                portStatus.textContent = 'Inativo';
+                showAlert("Hardening de portas desativado - SISTEMA VULNERÁVEL", "critical");
+                playAlertSound('critical');
+                updateTacticalStatus(0.7); // 70% threat
+            }
+        });
+        
+        firewallBtn.addEventListener('click', () => {
+            firewallBtn.classList.toggle('active');
+            const isActive = firewallBtn.classList.contains('active');
+            
+            if (isActive) {
+                firewallIndicator.classList.add('active');
+                showAlert("Firewall ativado - Proteção MITM ativa", "info");
+                playAlertSound('info');
+                updateTacticalStatus(0.2); // 20% threat
+                
+                // Simular incremento de conexões bloqueadas
+                setInterval(() => {
+                    if (firewallBtn.classList.contains('active')) {
+                        const current = parseInt(blockedConnections.textContent);
+                        blockedConnections.textContent = current + Math.floor(Math.random() * 5);
+                    }
+                }, 5000);
+            } else {
+                firewallIndicator.classList.remove('active');
+                showAlert("Firewall desativado - ALERTA MÁXIMO", "critical");
+                playAlertSound('critical');
+                updateTacticalStatus(0.9); // 90% threat
+            }
+        });
+
+        // Defesa Automatizada
+        const defenseInterval = document.getElementById('defenseInterval');
+        defenseInterval.addEventListener('change', (e) => {
+            showAlert(`Defesa automatizada configurada para ${e.target.value} minutos`, "info");
+        });
+
+        // ============================================
+        // SISTEMA DE ALERTAS
+        // ============================================
+        const alertContainer = document.getElementById('alertContainer');
+        
+        const alertTypes = {
+            critical: { 
+                icon: 'fas fa-exclamation-triangle', 
+                title: 'ALERTA CRÍTICO',
+                sound: 'critical'
+            },
+            warning: { 
+                icon: 'fas fa-exclamation-circle', 
+                title: 'AVISO',
+                sound: 'warning'
+            },
+            info: { 
+                icon: 'fas fa-info-circle', 
+                title: 'INFORMAÇÃO',
+                sound: 'info'
+            }
+        };
+        
+        function showAlert(message, type = 'info') {
+            const alert = document.createElement('div');
+            alert.className = 'alert';
+            
+            const alertType = alertTypes[type] || alertTypes.info;
+            
+            alert.innerHTML = `
+                <div class="alert-icon">
+                    <i class="${alertType.icon}"></i>
+                </div>
+                <div class="alert-content">
+                    <h4>${alertType.title}</h4>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            alertContainer.appendChild(alert);
+            
+            // Feedback tátil para alertas críticos
+            if (type === 'critical' && window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate([200, 100, 200]);
+            }
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Simular alerta sonoro (implementação visual)
+        function playAlertSound(priority) {
+            const sounds = {
+                critical: '🔴 ALERTA CRÍTICO',
+                warning: '🟡 ATENÇÃO',
+                info: 'ℹ️ INFORMAÇÃO'
+            };
+            console.log(`🎵 Som de alerta: ${sounds[priority]}`);
+        }
+
+        // ============================================
+        // SISTEMA DE FEEDBACK TÁTIL
+        // ============================================
+        function triggerTactileFeedback(pattern) {
+            if (window.navigator && window.navigator.vibrate) {
+                const patterns = {
+                    critical: [200, 100, 200, 100, 200],
+                    warning: [300, 100, 300],
+                    info: [100],
+                    confirmation: [100, 50, 100],
+                    emergency: [500, 200, 500, 200, 500, 200, 500]
+                };
+                window.navigator.vibrate(patterns[pattern] || patterns.info);
+            }
+        }
+
+        // ============================================
+        // SISTEMA DE CONTROLE DE PRIVACIDADE
+        // ============================================
+        const privacyShield = document.getElementById('privacyShield');
+        const privacyBtn = document.getElementById('privacyBtn');
+        const remoteMonitorAlert = document.getElementById('remoteMonitorAlert');
+        
+        privacyBtn.addEventListener('click', () => {
+            privacyShield.classList.toggle('active');
+            privacyBtn.classList.toggle('active');
+            
+            if (privacyShield.classList.contains('active')) {
+                showAlert("Proteção de privacidade ativada - Tela desfocada", "warning");
+                triggerTactileFeedback('warning');
+            } else {
+                showAlert("Proteção de privacidade desativada", "info");
+            }
+        });
+
+        // Simular monitoramento remoto a cada 30 segundos
+        setInterval(() => {
+            if (Math.random() > 0.7) {
+                remoteMonitorAlert.style.display = 'block';
+                setTimeout(() => {
+                    remoteMonitorAlert.style.display = 'none';
+                }, 3000);
+                showAlert("Comando Central está observando esta interface", "info");
+            }
+        }, 30000);
+
+        // ============================================
+        // MODO VISÃO NOTURNA
+        // ============================================
+        const nightVisionBtn = document.getElementById('nightVisionBtn');
+        
+        nightVisionBtn.addEventListener('click', () => {
+            document.body.classList.toggle('night-vision');
+            
+            if (document.body.classList.contains('night-vision')) {
+                nightVisionBtn.style.backgroundColor = '#003300';
+                showAlert("MODO VISÃO NOTURNA ATIVADO", "warning");
+                triggerTactileFeedback('warning');
+            } else {
+                nightVisionBtn.style.backgroundColor = '';
+                showAlert("Modo visão noturna desativado", "info");
+            }
+        });
+
+        // ============================================
+        // ATUALIZAÇÃO DE STATUS TÁTICO
+        // ============================================
+        function updateTacticalStatus(threatLevel) {
+            const indicator = document.querySelector('.tactical-status-indicator');
+            indicator.style.left = `${threatLevel * 100}%`;
+            
+            // Atualizar cor baseada no nível de ameaça
+            if (threatLevel < 0.3) {
+                indicator.style.backgroundColor = '#4CAF50';
+            } else if (threatLevel < 0.6) {
+                indicator.style.backgroundColor = '#FF9800';
+            } else {
+                indicator.style.backgroundColor = '#D32F2F';
+            }
+        }
+
+        // ============================================
+        // MÓDULO DE EXFILTRAÇÃO
+        // ============================================
+        const transferBtn = document.getElementById('transferBtn');
+        const prioritySlider = document.getElementById('prioritySlider');
+        const priorityLabel = document.getElementById('priorityLabel');
+        const transferProgress = document.getElementById('transferProgress');
+        const transferData = document.getElementById('transferData');
+        const transferSpeed = document.getElementById('transferSpeed');
+        const transferEta = document.getElementById('transferEta');
+        const packetCount = document.getElementById('packetCount');
+        const dataCaptured = document.getElementById('dataCaptured');
+        
+        transferBtn.addEventListener('click', function() {
+            this.textContent = 'TRANSFERINDO...';
+            this.style.backgroundColor = 'var(--color-dark-red)';
+            
+            let progress = 65;
+            const interval = setInterval(() => {
+                if (progress < 100) {
+                    progress += 1;
+                    transferProgress.style.width = `${progress}%`;
+                    transferData.textContent = `${Math.round(347 + (520 - 347) * (progress/100))}/520 MB`;
+                    transferEta.textContent = `ETA: ${Math.round((100 - progress) / 10)}s`;
+                    
+                    if (progress === 100) {
+                        clearInterval(interval);
+                        this.textContent = 'TRANSFERÊNCIA CONCLUÍDA';
+                        showAlert("Dados exfiltrados com sucesso para servidor C2", "info");
+                        triggerTactileFeedback('confirmation');
+                    }
+                }
+            }, 200);
+            
+            triggerTactileFeedback('confirmation');
+        });
+        
+        prioritySlider.addEventListener('input', function() {
+            const priorities = ['BAIXA', 'MÉDIA', 'ALTA', 'MUITO ALTA', 'CRÍTICO'];
+            priorityLabel.textContent = priorities[this.value - 1];
+            priorityLabel.style.color = this.value > 3 ? 'var(--color-alert-red)' : 'var(--color-accent-yellow)';
+            
+            if (this.value > 3) {
+                showAlert(`Prioridade alterada para ${priorities[this.value - 1]}`, "warning");
+            }
+        });
+
+        // ============================================
+        // MAPA - CAMADAS
+        // ============================================
+        const layerBtns = document.querySelectorAll('.layer-btn');
+        
+        layerBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                layerBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const layer = btn.getAttribute('data-layer');
+                showAlert(`Camada de mapa alterada: ${layer}`, "info");
+                triggerTactileFeedback('info');
+            });
+        });
+
+        // ============================================
+        // PERFIL - CHECK-IN
+        // ============================================
+        const checkinBtn = document.getElementById('checkinBtn');
+        const lastCheckin = document.getElementById('lastCheckin');
+        let checkinCount = 0;
+        
+        checkinBtn.addEventListener('click', () => {
+            const now = new Date();
+            lastCheckin.textContent = 'agora';
+            showAlert("Check-in realizado com sucesso", "info");
+            triggerTactileFeedback('confirmation');
+            
+            checkinCount++;
+            
+            setTimeout(() => {
+                lastCheckin.textContent = '1 min atrás';
+            }, 60000);
+        });
+
+        // ============================================
+        // TEMPORIZADOR DE MISSÃO
+        // ============================================
+        const missionDuration = document.getElementById('missionDuration');
+        let missionSeconds = 45257; // 12:34:17 em segundos
+        
+        setInterval(() => {
+            missionSeconds++;
+            const hours = Math.floor(missionSeconds / 3600);
+            const minutes = Math.floor((missionSeconds % 3600) / 60);
+            const seconds = missionSeconds % 60;
+            
+            missionDuration.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+
+        // ============================================
+        // DEAD MAN'S SWITCH
+        // ============================================
+        const deadmanTimer = document.getElementById('deadmanTimer');
+        const confirmBtn = document.getElementById('confirmActivity');
+        let deadmanSeconds = 900; // 15 minutos
+        
+        function updateDeadmanTimer() {
+            const minutes = Math.floor(deadmanSeconds / 60);
+            const seconds = deadmanSeconds % 60;
+            deadmanTimer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            if (deadmanSeconds === 300) {
+                showAlert("ALERTA: Auto-destruição de dados em 5 minutos", "critical");
+                triggerTactileFeedback('critical');
+            } else if (deadmanSeconds === 60) {
+                showAlert("ALERTA CRÍTICO: Auto-destruição em 60 segundos", "critical");
+                triggerTactileFeedback('critical');
+            }
+        }
+        
+        const deadmanInterval = setInterval(() => {
+            if (deadmanSeconds > 0) {
+                deadmanSeconds--;
+                updateDeadmanTimer();
+            } else {
+                showAlert("AUTO-DESTRUIÇÃO DE DADOS INICIADA", "critical");
+                triggerTactileFeedback('emergency');
+                
+                // Simular wipe de dados
+                setTimeout(() => {
+                    showAlert("Todos os dados locais foram destruídos", "critical");
+                }, 3000);
+            }
+        }, 1000);
+        
+        confirmBtn.addEventListener('click', () => {
+            deadmanSeconds = 900;
+            updateDeadmanTimer();
+            showAlert("Atividade confirmada - Timer resetado", "info");
+            triggerTactileFeedback('confirmation');
+        });
+
+        // ============================================
+        // BOTÃO DE EMERGÊNCIA
+        // ============================================
+        const emergencyBtn = document.getElementById('emergencyBtn');
+        
+        emergencyBtn.addEventListener('click', () => {
+            showAlert("ALERTA DE EMERGÊNCIA ATIVADO - COMANDO CENTRAL NOTIFICADO", "critical");
+            triggerTactileFeedback('emergency');
+            
+            // Simular pedido de backup
+            setTimeout(() => {
+                showAlert("Forças de apoio estão a caminho. ETA: 5 minutos", "warning");
+            }, 2000);
+            
+            // Ativar modo baixa visibilidade
+            document.body.classList.add('low-visibility-mode');
+        });
+
+        // ============================================
+        // ATUALIZAÇÕES EM TEMPO REAL
+        // ============================================
+        
+        // Atualizar gráfico de espectro
+        function updateSpectrumChart() {
+            const chartWave = document.getElementById('spectrumWave');
+            const randomPoints = Array.from({length: 11}, (_, i) => {
+                return Math.floor(Math.random() * 30 + 40 + i % 3 * 10);
+            });
+            
+            const clipPath = `polygon(0% 100%, ${randomPoints.map((p, i) => {
+                return `${i * 10}% ${100 - p}%`;
+            }).join(', ')}, 100% 100%)`;
+            
+            chartWave.style.clipPath = clipPath;
+        }
+        
+        // Atualizar estatísticas de captura
+        function updateCaptureStats() {
+            const packets = Math.floor(Math.random() * 3000) + 2000;
+            packetCount.textContent = `${Math.floor(packets/1000)}.${Math.floor(packets%1000/100)}K`;
+            
+            const data = parseFloat(dataCaptured.textContent) + Math.random() * 0.5;
+            dataCaptured.textContent = `${data.toFixed(1)} MB`;
+            
+            const speed = (Math.random() * 3 + 1).toFixed(1);
+            transferSpeed.textContent = `${speed} MB/s`;
+        }
+        
+        // Atualizar timestamp TSD
+        function updateTSDTimestamp() {
+            const now = new Date();
+            const timestamp = document.getElementById('tsdTimestamp');
+            timestamp.textContent = `ATUALIZADO: ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        }
+        
+        // Simular novos dispositivos detectados
+        function simulateNewDevice() {
+            if (Math.random() > 0.7) {
+                showAlert("Novo dispositivo não autorizado detectado na rede", "warning");
+                triggerTactileFeedback('warning');
+                
+                const deviceCount = document.getElementById('deviceCount');
+                const currentCount = parseInt(deviceCount.textContent);
+                deviceCount.textContent = `${currentCount + 1} ENCONTRADOS`;
+            }
+        }
+        
+        // Intervalos de atualização
+        setInterval(updateSpectrumChart, 800);
+        setInterval(updateCaptureStats, 3000);
+        setInterval(updateTSDTimestamp, 1000);
+        setInterval(simulateNewDevice, 15000);
+
+        // ============================================
+        // FILTROS DE DISPOSITIVOS
+        // ============================================
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const deviceItems = document.querySelectorAll('.device-item');
+        
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.getAttribute('data-filter');
+                
+                deviceItems.forEach(item => {
+                    if (filter === 'all') {
+                        item.style.display = 'flex';
+                    } else if (item.classList.contains(filter)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                showAlert(`Filtro aplicado: ${btn.textContent}`, "info");
+                triggerTactileFeedback('info');
+            });
+        });
+
+        // ============================================
+        // SISTEMA DE DADOS DE DESEMPENHO
+        // ============================================
+        class PerformanceMonitor {
+            constructor() {
+                this.metrics = {
+                    appResponseTime: [],
+                    dataUpdateLatency: [],
+                    memoryUsage: 0,
+                    cpuLoad: 0
+                };
+            }
+            
+            logMetric(name, value) {
+                if (this.metrics[name]) {
+                    this.metrics[name].push(value);
+                    
+                    // Manter apenas os últimos 100 registros
+                    if (this.metrics[name].length > 100) {
+                        this.metrics[name].shift();
+                    }
+                }
+            }
+            
+            getAverageMetric(name) {
+                const metric = this.metrics[name];
+                if (Array.isArray(metric) && metric.length > 0) {
+                    return metric.reduce((a, b) => a + b, 0) / metric.length;
+                }
+                return 0;
+            }
+        }
+        
+        const performanceMonitor = new PerformanceMonitor();
+
+        // ============================================
+        // INICIALIZAÇÃO DO SISTEMA
+        // ============================================
+        function initializeSystem() {
+            console.log('MOE CyberOps - Sistema inicializado');
+            showAlert("Sistema operacional pronto para missão", "info");
+            
+            // Verificar conexões iniciais
+            updateTacticalStatus(0.3);
+            
+            // Simular tentativa de intrusão após 10 segundos
+            setTimeout(() => {
+                showAlert("Tentativa de intrusão detectada - IP: 192.168.45.23", "critical");
+                triggerTactileFeedback('critical');
+                updateTacticalStatus(0.7);
+            }, 10000);
+            
+            // Simular varredura de rede após 30 segundos
+            setTimeout(() => {
+                showAlert("Varredura de rede em andamento - 24 hosts encontrados", "warning");
+                triggerTactileFeedback('warning');
+            }, 30000);
+        }
+        
+        initializeSystem();
+    </script>
+</body>
+</html>
